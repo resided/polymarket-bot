@@ -1,0 +1,33 @@
+name: polymarket-bot
+
+runner: linux
+architecture: arm64
+
+# Deploy command
+deploy:
+  command: python -m polymymarket_bot.main
+  restart: always
+
+# Environment variables (set via Railway dashboard)
+env:
+  - LOG_LEVEL: INFO
+  - ENABLE_ARB: true
+  - ENABLE_MISPRICING: true
+  - ENABLE_MICRO: true
+  - PAPER_TRADING: false
+
+# Health check
+healthCheck:
+  timeout: 10
+  interval: 30
+  path: /health
+
+# Scaling
+scale:
+  min: 1
+  max: 3
+
+# Regions (optional)
+# regions:
+#   - us-west2
+#   - eu-west1
