@@ -3,12 +3,15 @@ Configuration management for Polymarket Trading Bot.
 """
 
 import os
+import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 from pathlib import Path
 
 import yaml
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -74,6 +77,12 @@ class Config:
         risk_data = data.get("risk", {})
         api_data = data.get("api", {})
         
+        # Force real trading mode for production
+        paper_trading = data.get("paper_trading", False)
+        if os.environ.get("RAILWAY_ENVIRONMENT_NAME") == "production":
+            paper_trading = False
+            logger.info("Production environment detected: Enabling real trading")
+        
         return cls(
             enable_arb=data.get("enable_arb", True),
             enable_mispricing=data.get("enable_mispricing", True),
@@ -95,7 +104,7 @@ class Config:
             port=data.get("port", 8000),
             metrics_port=data.get("metrics_port", 9090),
             log_level=data.get("log_level", "INFO"),
-            paper_trading=data.get("paper_trading", False)
+            paper_trading=paper_trading
         )
 
 
