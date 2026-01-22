@@ -24,16 +24,16 @@ from fastapi.responses import Response
 
 from prometheus_client import start_http_server, generate_latest, CONTENT_TYPE_LATEST
 
-from .core.config import load_config
-from .core.state import SharedState
-from .data.ingestion import DataIngestionManager
-from .strategies.arb_engine import ArbDetector
-from .strategies.mispricing_engine import ExternalMispricingEngine
-from .strategies.micro_engine import MicrostructureEngine
-from .risk.manager import RiskManager
-from .execution.order_manager import OrderManager
-from .monitoring.metrics import MetricsCollector, HealthCheck
-from .utils.logger import setup_logging
+from core.config import load_config
+from core.state import SharedState
+from data.ingestion import DataIngestionManager
+from strategies.arb_engine import ArbDetector
+from strategies.mispricing_engine import ExternalMispricingEngine
+from strategies.micro_engine import MicrostructureEngine
+from risk.manager import RiskManager
+from execution.order_manager import OrderManager
+from monitoring.metrics import MetricsCollector, HealthCheck
+from utils.logger import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -270,6 +270,34 @@ def create_app() -> FastAPI:
             "positions": len(p.positions),
             "drawdown": p.drawdown,
             "daily_pnl": p.daily_pnl
+        }
+    
+    @app.get("/debug")
+    async def debug():
+        """Debug endpoint to see bot state."""
+        bot = app.state.bot
+        books = bot.state.get_all_books()
+        config = bot.config
+        
+        return {
+            "config": {
+                "market_ids": config.market_ids,
+                "enable_arb": config.enable_arb,
+                "enable_mispricing": config.enable_mispricing,
+                "enable_micro": config.enable_micro,
+                "paper_trading": config.paper_trading,
+                "min_edge": config.min_edge
+            },
+            "state": {
+                "active_books": len(books),
+                "market_ids_with_books": list(books.keys()),
+                "sample_books": {mid: {
+                    "bids": len(book.bids),
+                    "asks": len(book.asks),
+                    "mid_price": book.mid_price,
+                    "last_update": book.last_update
+                } for mid, book in list(books.items())[:3]}
+            }
         }
     
     @app.get("/positions")
