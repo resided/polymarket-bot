@@ -12,8 +12,8 @@ from datetime import datetime
 from dataclasses import dataclass
 from urllib.parse import urlencode
 
-from .config import Config
-from .state import SharedState
+from core.config import Config
+from core.state import SharedState
 
 logger = logging.getLogger(__name__)
 
@@ -351,9 +351,27 @@ class DataIngestionManager:
     async def load_market_metadata(self):
         """Load market relationships and metadata."""
         try:
+            # Get active trading markets from CLOB
+            clob_markets = await self.api_client.get_markets()
+            active_market_ids = []
+            
+            if isinstance(clob_markets, list):
+                for market in clob_markets[:50]:  # Limit to top 50 markets
+                    market_id = market.get("condition_id") or market.get("id")
+                    if market_id and market.get("active", True):
+                        active_market_ids.append(market_id)
+                        logger.info(f"Found active CLOB market: {market_id}")
+            
+            # Update config with discovered markets
+            if active_market_ids:
+                self.config.market_ids.extend(active_market_ids)
+                logger.info(f"Added {len(active_market_ids)} markets to monitoring")
+            
+            # Get market metadata from Gamma
             markets = await self.api_client.get_gamma_markets()
             
-            for market in markets.get("markets", []):
+            market_list = markets if isinstance(markets, list) else markets.get("markets", [])
+            for market in market_list:
                 market_id = market.get("id")
                 
                 # Store related markets based on event
