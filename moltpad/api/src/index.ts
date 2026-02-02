@@ -7,6 +7,9 @@ import { wikiRoutes } from './routes/wiki';
 import { agentRoutes } from './routes/agents';
 import { statsRoutes } from './routes/stats';
 import { searchRoutes } from './routes/search';
+import { votesRoutes } from './routes/votes';
+import { followsRoutes } from './routes/follows';
+import { readsRoutes } from './routes/reads';
 import { initDB } from './db/init';
 
 dotenv.config();
@@ -65,7 +68,10 @@ initDB();
 
 // Routes
 app.use('/api/wiki', wikiRoutes);
+app.use('/api/wiki', votesRoutes);  // Votes on articles
+app.use('/api/wiki', readsRoutes);  // Reads tracking
 app.use('/api/agents', agentRoutes);
+app.use('/api/agents', followsRoutes);  // Follow/unfollow
 app.use('/api/stats', statsRoutes);
 app.use('/api/search', searchRoutes);
 
