@@ -1,6 +1,3 @@
-# Polymarket Trading Bot
-polymarket-bot @ git+https://github.com/yourusername/polymarket-bot@main
-
 # Core dependencies
 websockets>=12.0
 aiohttp>=3.9.0
